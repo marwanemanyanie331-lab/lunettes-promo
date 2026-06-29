@@ -219,80 +219,91 @@ const MODELS=[
 ];
 let S1=null,S2=null,LV=null,M1='cartier',M2='cartier';
 
-function renderTabs(slot,activeId,cbName){
-  document.getElementById(slot+'tabs').innerHTML=MODELS.map(m=>
-    '<div class="mtab'+(m.id===activeId?' active':'')+'" onclick="'+cbName+'(\''+m.id+'\')">'+m.name+'<span class="badge">'+m.colors.length+'</span></div>'
-  ).join('');
+function renderTabs(slot,activeId){
+  const cont=document.getElementById(slot+'tabs');
+  cont.innerHTML='';
+  MODELS.forEach(function(m){
+    var tab=document.createElement('div');
+    tab.className='mtab'+(m.id===activeId?' active':'');
+    tab.innerHTML=m.name+'<span class="badge">'+m.colors.length+'</span>';
+    tab.onclick=function(){
+      if(slot==='m1') pick1Model(m.id);
+      else pick2Model(m.id);
+    };
+    cont.appendChild(tab);
+  });
 }
 
-function renderColors(slot,modelId,selId,cbName){
-  const m=MODELS.find(x=>x.id===modelId);
-  const isThree=m.colors.length<=3;
-  let html='<div class="colors-grid'+(isThree?' three':'')+'">';
-  m.colors.forEach(c=>{
-    const sel=selId===c.id?' selected':'';
-    html+='<div class="cc'+sel+'" onclick="'+cbName+'(\''+c.id+'\',\''+c.label+'\',\''+modelId+'\',\''+m.name+'\','+slot+'_img_'+c.id+')">'
-      +'<div class="pck">✓</div>'
-      +'<div class="cimg"><img src="'+c.img+'" loading="lazy"></div>'
-      +'<div class="clbl">'+c.label+'</div>'
-      +'</div>';
+function renderColors(slot,modelId,selId){
+  var m=MODELS.find(function(x){return x.id===modelId;});
+  var isThree=m.colors.length<=3;
+  var cont=document.getElementById(slot+'colors');
+  var grid=document.createElement('div');
+  grid.className='colors-grid'+(isThree?' three':'');
+  m.colors.forEach(function(c){
+    var card=document.createElement('div');
+    card.className='cc'+(selId===c.id?' selected':'');
+    card.innerHTML='<div class="pck">✓</div><div class="cimg"><img src="'+c.img+'" loading="lazy"></div><div class="clbl">'+c.label+'</div>';
+    (function(cc,cl,mi,mn,ci){
+      card.onclick=function(){
+        if(slot==='m1') pick1Color(cc,cl,mi,mn,ci);
+        else pick2Color(cc,cl,mi,mn,ci);
+      };
+    })(c.id,c.label,m.id,m.name,c.img);
+    grid.appendChild(card);
   });
-  html+='</div>';
-  document.getElementById(slot+'colors').innerHTML=html;
+  cont.innerHTML='';
+  cont.appendChild(grid);
 }
 
 function pick1Model(mid){
   M1=mid;S1=null;
   document.getElementById('si1').className='si empty';
   document.getElementById('si1').innerHTML='<span>1ère paire ↑</span>';
-  renderTabs('m1',M1,'pick1Model');
-  renderColors('m1',M1,null,'pick1Color');
-  upd();
+  renderTabs('m1',M1);renderColors('m1',M1,null);upd();
 }
 function pick2Model(mid){
   M2=mid;S2=null;
   document.getElementById('si2').className='si empty';
   document.getElementById('si2').innerHTML='<span>2ème paire ↑</span>';
-  renderTabs('m2',M2,'pick2Model');
-  renderColors('m2',M2,null,'pick2Color');
-  upd();
+  renderTabs('m2',M2);renderColors('m2',M2,null);upd();
 }
 
 function pick1Color(cid,clabel,mid,mname,cimg){
   S1={model:mname,color:clabel,img:cimg};
-  renderColors('m1',M1,cid,'pick1Color');
-  const el=document.getElementById('si1');
+  renderColors('m1',M1,cid);
+  var el=document.getElementById('si1');
   el.className='si';
   el.innerHTML='<img class="si-img" src="'+cimg+'"><div><div class="si-cat">1ère paire</div><div class="si-name">'+mname+'</div><div class="si-color">'+clabel+'</div></div>';
   upd();
-  if(!S2) setTimeout(()=>document.getElementById('step2').scrollIntoView({behavior:'smooth',block:'start'}),350);
+  if(!S2) setTimeout(function(){document.getElementById('step2').scrollIntoView({behavior:'smooth',block:'start'});},350);
 }
 function pick2Color(cid,clabel,mid,mname,cimg){
   S2={model:mname,color:clabel,img:cimg};
-  renderColors('m2',M2,cid,'pick2Color');
-  const el=document.getElementById('si2');
+  renderColors('m2',M2,cid);
+  var el=document.getElementById('si2');
   el.className='si';
   el.innerHTML='<img class="si-img" src="'+cimg+'"><div><div class="si-cat">2ème paire</div><div class="si-name">'+mname+'</div><div class="si-color">'+clabel+'</div></div>';
   upd();
 }
 
 function pickLivr(price,label,el){
-  document.querySelectorAll('.lc').forEach(x=>x.classList.remove('selected'));
-  el.classList.add('selected');LV={price,label};
+  document.querySelectorAll('.lc').forEach(function(x){x.classList.remove('selected');});
+  el.classList.add('selected');LV={price:price,label:label};
   document.getElementById('livr-display').textContent=price+' DH';
   document.getElementById('total-price').textContent=(150+price)+' DH';
   upd();
 }
 
 function upd(){
-  const nom=document.getElementById('f-nom').value.trim();
-  const tel=document.getElementById('f-tel').value.trim();
-  const ville=document.getElementById('f-ville').value.trim();
-  const adresse=document.getElementById('f-adresse').value.trim();
-  const formOk=nom&&tel&&ville&&adresse;
-  const ready=S1&&S2&&LV&&formOk;
-  const btn=document.getElementById('sumBtn');
-  const fb=document.getElementById('fbB');
+  var nom=document.getElementById('f-nom').value.trim();
+  var tel=document.getElementById('f-tel').value.trim();
+  var ville=document.getElementById('f-ville').value.trim();
+  var adresse=document.getElementById('f-adresse').value.trim();
+  var formOk=nom&&tel&&ville&&adresse;
+  var ready=S1&&S2&&LV&&formOk;
+  var btn=document.getElementById('sumBtn');
+  var fb=document.getElementById('fbB');
   if(ready){
     btn.className='sum-btn ready';
     btn.textContent='📱 Commander · '+(150+LV.price)+' DH';
@@ -302,7 +313,7 @@ function upd(){
     btn.onclick=sendWts;fb.onclick=sendWts;
   } else {
     btn.className='sum-btn';
-    const p=[];
+    var p=[];
     if(!S1)p.push('1ère paire');if(!S2)p.push('2ème paire');
     if(!LV)p.push('livraison');if(!formOk)p.push('vos infos');
     btn.textContent='Complétez : '+p.join(' · ');btn.onclick=null;
@@ -313,13 +324,13 @@ function upd(){
 }
 
 function sendWts(){
-  const nom=document.getElementById('f-nom').value.trim();
-  const tel=document.getElementById('f-tel').value.trim();
-  const ville=document.getElementById('f-ville').value.trim();
-  const adresse=document.getElementById('f-adresse').value.trim();
+  var nom=document.getElementById('f-nom').value.trim();
+  var tel=document.getElementById('f-tel').value.trim();
+  var ville=document.getElementById('f-ville').value.trim();
+  var adresse=document.getElementById('f-adresse').value.trim();
   if(!S1||!S2||!LV||!nom||!tel||!ville||!adresse)return;
-  const total=150+LV.price;
-  const m='Salam!+👋%0A%0A🔥+PROMO+2+Lunettes:%0A%0A'
+  var total=150+LV.price;
+  var m='Salam!+👋%0A%0A🔥+PROMO+2+Lunettes:%0A%0A'
     +'🕶️+1ère+paire:+'+encodeURIComponent(S1.model+' '+S1.color)+'%0A'
     +'🕶️+2ème+paire:+'+encodeURIComponent(S2.model+' '+S2.color)+'%0A%0A'
     +'👤+Nom:+'+encodeURIComponent(nom)+'%0A'
@@ -333,8 +344,9 @@ function sendWts(){
   window.open('https://wa.me/212656862423?text='+m,'_blank');
 }
 
-renderTabs('m1',M1,'pick1Model');renderColors('m1',M1,null,'pick1Color');
-renderTabs('m2',M2,'pick2Model');renderColors('m2',M2,null,'pick2Color');
+renderTabs('m1',M1);renderColors('m1',M1,null);
+renderTabs('m2',M2);renderColors('m2',M2,null);
+
 </script>
 </body>
 </html>
